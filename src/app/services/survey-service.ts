@@ -61,4 +61,11 @@ export class SurveyService {
       this.getAuthHeaders()
     );
   }
+
+  deleteResponse(responseId: string) {
+    return this.http.delete(
+      `${this.BASE_URL}survey/response/${responseId}`,
+      this.getAuthHeaders()
+    );
+  }
 }

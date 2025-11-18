@@ -22,9 +22,14 @@ export class Dashboard {
   user: any = JSON.parse(localStorage.getItem('user') || '{}');
   surveys: any[] = [];
   selectedSurveyQuestions: any[] = [];
+  selectedSurveyId: string | null = null;
   isLoading = true;
   teamSurveyData: any[] = [];
-  showTeamResults = false;
+  showTeamResults = false; // legacy, kept for compatibility but UI now shows team groups by default for leaders
+  teamGroups: any[] = []; // grouped by user for display
+  uniqueSurveys: Array<{ surveyId: string; version: number | null }> = [];
+  teamMatrixRows: any[] = []; // rows for matrix table
+  openActionsRow: number | null = null; // index of the row whose actions dropdown is open
   hasSubmittedSurvey = false;
   submittedSurveyId: string | null = null;
   submittedSurveyIds: string[] = []; // list of survey IDs the user has submitted
@@ -56,6 +61,7 @@ export class Dashboard {
       next: (res: any) => {
         if (Array.isArray(res.data)) {
           this.submittedSurveyIds = res.data.map((id: any) => String(id));
+          console.log('🔁 my-responses:', this.submittedSurveyIds);
         } else {
           this.submittedSurveyIds = [];
         }
@@ -64,6 +70,10 @@ export class Dashboard {
         this.submittedSurveyIds = [];
       },
     });
+  }
+
+  isSubmitted(surveyId: any): boolean {
+    return this.submittedSurveyIds.includes(String(surveyId));
   }
 
   // ------------ Load Survey Questions ------------
@@ -121,22 +131,32 @@ export class Dashboard {
 
   // ------------ Open Survey Fill Modal ------------
   openSurveyModal(survey: any): void {
+    // DEBUG: log ids to help troubleshoot why a survey may be blocked
+    console.log('➡ openSurveyModal check:', {
+      surveyId: String(survey.survey._id),
+      submittedIds: this.submittedSurveyIds,
+      isSubmitted: this.isSubmitted(survey.survey._id),
+    });
+
     // Prevent opening the modal if the user already submitted this specific survey
-    if (this.submittedSurveyIds.includes(survey.survey._id)) {
+    if (this.isSubmitted(survey.survey._id)) {
       showError('You have already filled this survey!');
       return;
     }
 
-    this.selectedSurveyQuestions = survey.questions;
+  this.selectedSurveyQuestions = survey.questions;
+  // track which survey the user opened so submits go to the correct survey
+  this.selectedSurveyId = String(survey.survey._id);
     this.surveyModal.open();
 }
 
   // ------------ Submit Survey Answers ------------
   handleSurveySubmit(formData: any) {
-    const surveyId = localStorage.getItem('active_survey_id');
+    // prefer the survey the user opened; fall back to active_survey_id if present
+    const surveyId = this.selectedSurveyId || localStorage.getItem('active_survey_id');
 
     if (!surveyId) {
-      showError('No active survey found');
+      showError('No survey selected');
       return;
     }
 
@@ -153,9 +173,12 @@ export class Dashboard {
         this.hasSubmittedSurvey = true;
         this.submittedSurveyId = surveyId; // mark the currently-active survey as submitted for this user
         // keep the persisted list in sync so reloads still show Completed
-        if (surveyId && !this.submittedSurveyIds.includes(surveyId)) {
-          this.submittedSurveyIds.push(surveyId);
+        const sid = String(surveyId);
+        if (surveyId && !this.submittedSurveyIds.includes(sid)) {
+          this.submittedSurveyIds.push(sid);
         }
+        // reset selected survey after successful submit
+        this.selectedSurveyId = null;
         this.loadSurveys();
       },
       error: (err) =>
@@ -200,7 +223,11 @@ export class Dashboard {
   // ------------ Fetch subordinate survey records ------------
   loadTeamSurveyTable() {
     this.surveyService.getTeamResponses().subscribe({
-      next: (res) => (this.teamSurveyData = res.data || []),
+      next: (res) => {
+        this.teamSurveyData = res.data || [];
+        this.sortTeamSurveyData();
+        this.buildTeamGroups();
+      },
       error: () => {},
     });
   }
@@ -210,9 +237,193 @@ export class Dashboard {
     this.surveyService.getTeamResponses().subscribe({
       next: (res) => {
         this.teamSurveyData = res.data || [];
+        this.sortTeamSurveyData();
+        this.buildTeamGroups();
         this.showTeamResults = true;
       },
       error: (err) => showError(err.error?.message || 'Error fetching results'),
+    });
+  }
+
+  // Build grouped structure: [{ userId, userName, role, entries: [{ surveyId, version, submitted, answers }] }]
+  buildTeamGroups() {
+    const map: Record<string, any> = {};
+    (this.teamSurveyData || []).forEach((r: any) => {
+      const uid = String(r.userId?._id || r.userId);
+      if (!map[uid]) {
+        map[uid] = {
+          userId: r.userId,
+          name: `${r.userId?.first_name || ''} ${r.userId?.last_name || ''}`.trim(),
+          role: r.userId?.roleId?.name || '',
+          entries: [],
+        };
+      }
+
+      map[uid].entries.push({
+        responseId: r._id,
+        surveyId: r.surveyId?._id || r.surveyId,
+        version: r.surveyId?.version || r.surveyVersion || null,
+        submitted: r.answers && r.answers.length > 0,
+        answers: r.answers || [],
+        createdAt: r.createdAt,
+      });
+    });
+
+    // convert to array and sort users by role level desc (use roleId.level if available)
+    this.teamGroups = Object.values(map).map((g: any) => {
+      // sort entries by version desc (latest first)
+      g.entries.sort((a: any, b: any) => (b.version || 0) - (a.version || 0));
+      return g;
+    });
+
+    // optionally sort users by role level (higher level first)
+    // sort users by explicit role priority to avoid relying on numeric levels
+    const rolePriority: Record<string, number> = {
+      ceo: 6,
+      cto: 5,
+      pm: 4,
+      teamlead: 3,
+      developer: 2,
+      intern: 1,
+      internee: 1,
+    };
+
+    this.teamGroups.sort((a: any, b: any) => {
+      const aRole = String(a.userId?.roleId?.name || a.role || '').toLowerCase().trim();
+      const bRole = String(b.userId?.roleId?.name || b.role || '').toLowerCase().trim();
+      const aPriority = rolePriority[aRole] ?? 0;
+      const bPriority = rolePriority[bRole] ?? 0;
+      if (aPriority !== bPriority) return bPriority - aPriority;
+      return (a.name || '').localeCompare(b.name || '');
+    });
+
+    // Build unique survey list and matrix rows for table-with-columns view
+    const surveyMap: Record<string, number> = {};
+    (this.teamSurveyData || []).forEach((r: any) => {
+      const sid = String(r.surveyId?._id || r.surveyId);
+      const ver = r.surveyId?.version || r.surveyVersion || null;
+      if (!surveyMap[sid]) surveyMap[sid] = ver ?? 0;
+    });
+
+    // create sorted uniqueSurveys by version asc
+    this.uniqueSurveys = Object.keys(surveyMap)
+      .map((k) => ({ surveyId: k, version: surveyMap[k] }))
+      .sort((a, b) => (a.version || 0) - (b.version || 0));
+
+    // build rows: one row per user with cells for each surveyId
+    this.teamMatrixRows = this.teamGroups.map((g: any) => {
+      const cells: Record<string, any> = {};
+      g.entries.forEach((e: any) => {
+        const sid = String(e.surveyId);
+        // build a short answers summary
+        const summaryLines = (e.answers || []).map((a: any) => {
+          const q = a.questionId?.question || a.question || '';
+          const ans = Array.isArray(a.answer) ? a.answer.join(', ') : (a.answer ?? '');
+          return { question: q, answer: ans };
+        });
+        const summary = summaryLines
+          .map((l: any) => (l.question ? `${l.question}: ${l.answer}` : `${l.answer}`))
+          .join(' | ');
+        cells[sid] = { ...e, summaryLines, summary };
+      });
+      return { userId: g.userId, name: g.name, role: g.role, cells };
+    });
+  }
+
+  // ------------ Permission helper: can current user delete a given target role level?
+  canDeleteTarget(targetRoleLevel: number | null | undefined, targetRoleName?: string): boolean {
+    const blocked = ['developer', 'intern', 'internee'];
+    const myRoleName = String(this.user?.role || '').toLowerCase();
+
+    if (blocked.includes(myRoleName)) return false;
+
+    // determine myLevel from the team data if possible
+    const myId = String(this.user?._id || this.user?.id || '');
+    const myEntry = (this.teamSurveyData || []).find((r: any) => String(r.userId?._id) === myId);
+    const myLevel = Number(myEntry?.userId?.roleId?.level ?? this.user?.roleLevel ?? 0);
+
+    const tgtLevel = Number(targetRoleLevel ?? 0);
+
+    return myLevel > tgtLevel;
+  }
+
+  // ------------ Delete a response (with confirmation) ------------
+  confirmAndDelete(responseId: string, targetRoleLevel?: number, targetName?: string) {
+    if (!responseId) return;
+
+    if (!this.canDeleteTarget(targetRoleLevel, targetName)) {
+      showError('You do not have permission to delete this response');
+      return;
+    }
+
+    const ok = confirm('Are you sure you want to delete this response? This action can be undone by admins.');
+    if (!ok) return;
+
+    this.surveyService.deleteResponse(responseId).subscribe({
+      next: () => {
+        showSuccess('Response deleted');
+        // refresh team data
+        this.loadTeamSurveyTable();
+      },
+      error: (err) => showError(err.error?.message || 'Error deleting response'),
+    });
+  }
+
+  // Toggle per-row actions dropdown
+  toggleRowActions(index: number) {
+    if (this.openActionsRow === index) this.openActionsRow = null;
+    else this.openActionsRow = index;
+  }
+
+  // Get entries (cells) as an array for a row to show in actions dropdown
+  rowEntriesForActions(row: any) {
+    if (!row || !row.cells) return [];
+    return Object.keys(row.cells).map((k) => {
+      const c = row.cells[k];
+      return {
+        responseId: c.responseId,
+        surveyId: k,
+        version: c.version,
+        submitted: c.submitted,
+        createdAt: c.createdAt,
+        summary: c.summary,
+      };
+    }).sort((a: any, b: any) => (b.version || 0) - (a.version || 0));
+  }
+
+  // Sort teamSurveyData by role level (desc) then by submission status (submitted first)
+  sortTeamSurveyData() {
+    if (!Array.isArray(this.teamSurveyData)) return;
+    // determine current user's role level (try to find in team data first)
+    const myId = String(this.user?._id || this.user?.id || '');
+    const myEntry = this.teamSurveyData.find((r: any) => String(r.userId?._id) === myId || String(r.userId?._id) === String(this.user?._id));
+    const myLevel = Number(myEntry?.userId?.roleId?.level ?? this.user?.roleLevel ?? 0);
+
+    // compute average level to decide sorting direction when needed
+    const levels = this.teamSurveyData.map((r: any) => Number(r.userId?.roleId?.level ?? 0)).filter((l: number) => l > 0);
+    const avgLevel = levels.length ? levels.reduce((s: number, v: number) => s + v, 0) / levels.length : 0;
+
+    // If current user's level is >= average, show higher roles first; otherwise show lower roles first
+    const higherFirst = myLevel >= avgLevel;
+
+    this.teamSurveyData.sort((a: any, b: any) => {
+      const aLevel = Number(a.userId?.roleId?.level ?? 0);
+      const bLevel = Number(b.userId?.roleId?.level ?? 0);
+
+      // primary: role level (direction depends on viewer)
+      if (aLevel !== bLevel) return higherFirst ? (bLevel - aLevel) : (aLevel - bLevel);
+
+      // secondary: submitted first (those with answers first)
+      const aSubmitted = (a.answers && a.answers.length > 0) ? 1 : 0;
+      const bSubmitted = (b.answers && b.answers.length > 0) ? 1 : 0;
+      if (aSubmitted !== bSubmitted) return bSubmitted - aSubmitted;
+
+      // tertiary: alphabetical by last name
+      const aName = (a.userId?.last_name || '').toLowerCase();
+      const bName = (b.userId?.last_name || '').toLowerCase();
+      if (aName < bName) return -1;
+      if (aName > bName) return 1;
+      return 0;
     });
   }
 

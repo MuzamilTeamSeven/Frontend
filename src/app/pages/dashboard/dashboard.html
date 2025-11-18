@@ -36,11 +36,11 @@
       </div>
 
         <!-- If this survey is NOT submitted -->
-        <button class="action-btn" *ngIf="!submittedSurveyIds.includes(survey.survey._id)" (click)="openSurveyModal(survey)">
+        <button class="action-btn" *ngIf="!isSubmitted(survey.survey._id)" (click)="openSurveyModal(survey)">
           <i class="fa-solid fa-pen"></i> Fill Survey
         </button>
 
-        <div *ngIf="submittedSurveyIds.includes(survey.survey._id)" class="text-success mt-2 fw-bold">
+        <div *ngIf="isSubmitted(survey.survey._id)" class="text-success mt-2 fw-bold">
           ✔ Completed
         </div>
 
@@ -55,51 +55,75 @@
       <i class="fa-solid fa-users"></i> Team Survey Results
     </h5>
 
-    <table class="team-table" *ngIf="teamSurveyData.length > 0; else noTeamSurvey">
-      <thead>
-        <tr>
-          <th style="width:40px">#</th>
-          <th>User</th>
-          <th>Role</th>
-          <th>Status</th>
-          <th style="width:90px">View</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let row of teamSurveyData; let i = index" class="click-row">
-          <td class="text-dark">{{ i+1 }}</td>
-          <td class="text-dark user-cell">
-            <div class="user-name">{{ row.userId.first_name }} {{ row.userId.last_name }}</div>
-            <div class="user-email">{{ row.userId.email }}</div>
-          </td>
-          <td>
-            <span class="role-chip-table">{{ row.userId.roleId?.name || '—' }}</span>
-          </td>
-          <td>
-            <span class="status completed" *ngIf="row.answers.length > 0">Completed</span>
-            <span class="status pending" *ngIf="row.answers.length === 0">Pending</span>
-          </td>
-          <td>
-            <button class="view-btn" (click)="openUserSurveyResult(row)">
-              <i class="fa-solid fa-eye"></i>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="team-scroll">
+      <ng-container *ngIf="teamMatrixRows.length > 0 && uniqueSurveys.length > 0; else noTeamSurvey">
+        <table class="team-table matrix-table">
+          <thead>
+            <tr>
+              <th style="width:240px">User</th>
+              <th style="width:120px">Role</th>
+              <th *ngFor="let s of uniqueSurveys">Survey v{{ s.version || '—' }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of teamMatrixRows; let ri = index" class="click-row">
+              <td class="user-cell">
+                <div class="user-name">{{ row.name }}</div>
+                <div class="user-email">{{ row.userId.email }}</div>
+              </td>
+              <td><span class="role-chip-table">{{ row.role || '—' }}</span></td>
+              <td *ngFor="let s of uniqueSurveys">
+                <ng-container *ngIf="row.cells[s.surveyId]; else noEntry">
+                  <div>
+                    <span class="status completed" *ngIf="row.cells[s.surveyId].submitted">✔</span>
+                    <span class="status pending" *ngIf="!row.cells[s.surveyId].submitted">—</span>
+                      <div class="small text-muted">{{ row.cells[s.surveyId].createdAt | date:'short' }}</div>
+                      <div class="action-inline">
+                        <button *ngIf="row.cells[s.surveyId].responseId && canDeleteTarget(row.userId?.roleId?.level)"
+                          class="delete-btn" (click)="confirmAndDelete(row.cells[s.surveyId].responseId, row.userId?.roleId?.level, row.name)">
+                          <i class="fa-solid fa-trash"></i>
+                        </button>
+                      </div>
 
-    <ng-template #noTeamSurvey>
-      <p class="text-muted text-center mt-2">No subordinate survey data found.</p>
-    </ng-template>
+                      <div class="matrix-summary" title="{{ row.cells[s.surveyId].summary }}">
+                      <div *ngFor="let line of row.cells[s.surveyId].summaryLines" class="matrix-summary-line">
+                        <strong *ngIf="line.question">{{ line.question }}</strong><span *ngIf="line.question">: </span>{{ line.answer }}
+                      </div>
+                    </div>
+                  </div>
+                </ng-container>
+                <ng-template #noEntry>
+                  <span class="text-muted">—</span>
+                </ng-template>
+              </td>
+              <!-- Actions column -->
+              <td class="actions-cell">
+                <div class="actions-wrap">
+                  <button class="action-btn" (click)="toggleRowActions(ri)">Actions ▾</button>
+                  <div *ngIf="openActionsRow === ri" class="actions-dropdown">
+                    <div *ngIf="rowEntriesForActions(row).length === 0" class="empty">No responses</div>
+                    <div *ngFor="let e of rowEntriesForActions(row)" class="actions-entry">
+                      <div class="entry-meta">
+                        <div class="entry-title">Survey v{{ e.version || '—' }} <span class="dot">•</span> <small class="muted">{{ e.createdAt | date:'short' }}</small></div>
+                        <div class="entry-actions">
+                          <button *ngIf="canDeleteTarget(row.userId?.roleId?.level) && e.responseId" class="delete-small" (click)="confirmAndDelete(e.responseId, row.userId?.roleId?.level, row.name)">Delete</button>
+                        </div>
+                      </div>
+                      <div class="entry-summary">{{ e.summary }}</div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </ng-container>
 
-  </div>
+      <ng-template #noTeamSurvey>
+        <p class="text-muted text-center mt-2">No subordinate survey data found.</p>
+      </ng-template>
+    </div>
 
-
-  <!-- Team Results For Leaders -->
-  <div class="text-end mb-3" *ngIf="['CEO', 'CTO', 'TeamLead', 'PM'].includes(user.role)">
-    <button class="team-btn" (click)="viewTeamResponses()">
-      <i class="fa-solid fa-users"></i> View Team Results
-    </button>
   </div>
 
 </div>
