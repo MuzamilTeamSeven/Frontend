@@ -25,14 +25,15 @@ export class Dashboard {
   selectedSurveyId: string | null = null;
   isLoading = true;
   teamSurveyData: any[] = [];
-  showTeamResults = false; // legacy, kept for compatibility but UI now shows team groups by default for leaders
-  teamGroups: any[] = []; // grouped by user for display
+  showTeamResults = false; 
+  teamGroups: any[] = [];
   uniqueSurveys: Array<{ surveyId: string; version: number | null }> = [];
-  teamMatrixRows: any[] = []; // rows for matrix table
+  teamMatrixRows: any[] = []; 
+  visibleTeamMatrixRows: any[] = []; // filtered rows visible to current user (dev/intern see only own)
   
   hasSubmittedSurvey = false;
   submittedSurveyId: string | null = null;
-  submittedSurveyIds: string[] = []; // list of survey IDs the user has submitted
+  submittedSurveyIds: string[] = []; 
 
   constructor(private surveyService: SurveyService, private router: Router) {}
 
@@ -41,8 +42,8 @@ export class Dashboard {
     this.checkSurveyStatus();
     this.loadMyResponses();
 
-    // Allow PM to load team responses as well (UI already shows PM in template)
-    if (['CEO', 'CTO', 'TeamLead', 'PM'].includes(this.user.role)) {
+    // Allow PM, Developer, Intern to load team responses as well (so they can see their own rows)
+    if (['CEO', 'CTO', 'TeamLead', 'PM', 'Developer', 'Intern', 'Internee'].includes(this.user.role)) {
       this.loadTeamSurveyTable();
     }
   }
@@ -329,6 +330,16 @@ export class Dashboard {
       });
       return { userId: g.userId, name: g.name, role: g.role, cells };
     });
+
+    // compute visible rows: developers/interns should only see their own row
+    const myRole = String(this.user?.role || '').toLowerCase();
+    const myId = String(this.user?._id || this.user?.id || '');
+    const limitedRoles = ['developer', 'intern', 'internee'];
+    if (limitedRoles.includes(myRole)) {
+      this.visibleTeamMatrixRows = this.teamMatrixRows.filter((r: any) => String(r.userId?._id || r.userId) === myId);
+    } else {
+      this.visibleTeamMatrixRows = this.teamMatrixRows;
+    }
   }
 
   // ------------ Permission helper: can current user delete a given target role level?
