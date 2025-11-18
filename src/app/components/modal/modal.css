@@ -1,0 +1,7 @@
+.modal-content {
+  border-radius: 14px;
+  backdrop-filter: blur(10px);
+}
+textarea {
+  resize: none;
+}

@@ -1,1 +1,26 @@
-/* You can add global styles to this file, and also import other style files */
+@import 'animate.css';
+
+:root {
+  --font-primary: "Inter", sans-serif;
+  --font-heading: "Poppins", sans-serif;
+}
+
+body {
+  font-family: var(--font-primary);
+  letter-spacing: 0.1px;
+  -webkit-font-smoothing: antialiased;
+  background-color: #f8f9fc;
+}
+
+h1, h2, h3, h4, h5, h6, .auth-title {
+  font-family: var(--font-heading);
+}
+
+
+* {
+  scroll-behavior: smooth;
+}
+
+html, body, p, span, a, label, input, button, select, textarea, div, small, strong, li {
+  font-family: "Inter", sans-serif !important;
+}

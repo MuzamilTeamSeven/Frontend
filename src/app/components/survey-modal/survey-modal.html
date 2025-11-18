@@ -1,0 +1,48 @@
+<div class="modal fade" id="createSurveyModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5>Create Survey</h5>
+        <button class="btn-close" (click)="close()"></button>
+      </div>
+
+      <form [formGroup]="surveyForm">
+        <div class="modal-body">
+
+          <div formArrayName="questions">
+            <div 
+              class="question-block mb-3" 
+              *ngFor="let q of questions.controls; let i = index" 
+              [formGroupName]="i">
+
+              <input type="text" class="form-control mb-2" placeholder="Enter question" formControlName="question">
+
+              <select class="form-select mb-2" formControlName="type">
+                <option value="text">Text</option>
+                <option value="radio">Yes/No</option>
+                <option value="checkbox">Multi Select</option>
+              </select>
+
+              <input *ngIf="['radio','checkbox'].includes(q.value.type)"
+                     class="form-control mb-2"
+                     placeholder="Enter comma separated options"
+                     formControlName="options">
+
+              <button type="button" class="btn btn-danger btn-sm" (click)="removeQuestion(i)">Remove</button>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-secondary" (click)="addQuestion()">+ Add Question</button>
+
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="close()">Cancel</button>
+          <button class="btn btn-primary" (click)="submit()">Save Survey</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>

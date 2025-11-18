@@ -1,0 +1,88 @@
+<div class="auth-container">
+  <div class="auth-card shadow-lg animate__animated animate__fadeIn">
+
+    <!-- Logo + Headings -->
+    <div class="text-center mb-3">
+      <img src="https://cdn-icons-png.flaticon.com/512/942/942748.png" class="logo-img" alt="logo" />
+      <h2 class="fw-bold mt-2 text-primary auth-title">Create Account</h2>
+      <p class="text-muted auth-subtitle">Join our workplace community</p>
+    </div>
+
+    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+
+      <!-- First & Last Name -->
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="required">First Name</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="fa-solid fa-user"></i></span>
+            <input class="form-control" placeholder="Enter first name" formControlName="first_name">
+          </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label>Last Name</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="fa-solid fa-user"></i></span>
+            <input class="form-control" placeholder="Enter last name" formControlName="last_name">
+          </div>
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="mb-3">
+        <label class="required">Email</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="fa-solid fa-envelope"></i></span>
+          <input class="form-control" type="email" placeholder="Enter email address" formControlName="email">
+        </div>
+      </div>
+
+      <!-- Phone -->
+      <div class="mb-3">
+        <label>Phone Number</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="fa-solid fa-phone"></i></span>
+          <input class="form-control" placeholder="Enter phone number" formControlName="phonenumber">
+        </div>
+      </div>
+
+      <!-- Role -->
+      <div class="mb-3">
+        <label class="required">Select Role</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="fa-solid fa-briefcase"></i></span>
+          <select formControlName="role" class="form-select">
+            <option value="" disabled>Choose your role</option>
+            <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="mb-3">
+        <label class="required">Password</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
+          <input class="form-control" type="password" placeholder="Enter password" formControlName="password">
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <button class="btn btn-primary w-100 rounded-3 mt-2" [disabled]="isLoading">
+        <ng-container *ngIf="!isLoading">Sign Up</ng-container>
+        <ng-container *ngIf="isLoading">
+          <i class="fa-solid fa-spinner fa-spin"></i> Please wait...
+        </ng-container>
+      </button>
+
+      <!-- Already have account -->
+      <p class="text-center mt-3 small mb-0">
+        Already have an account?
+        <a routerLink="/auth/login" class="fw-semibold text-primary">Login</a>
+      </p>
+
+    </form>
+
+  </div>
+</div>

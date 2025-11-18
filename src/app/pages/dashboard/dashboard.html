@@ -1,0 +1,109 @@
+<div class="dashboard-container">
+
+  <!-- Top Navigation / Welcome -->
+  <div class="dashboard-header shadow">
+    <div class="user-info">
+      <h2>Welcome Back, <span>{{ user.first_name }} {{ user.last_name }}</span> 👋</h2>
+      <span class="role-chip">{{ user.role }}</span>
+    </div>
+  </div>
+
+  <div class="survey-header">
+    <h5 class="section-title">
+      <i class="fa-solid fa-list-check"></i> Available Surveys
+    </h5>
+
+    <!-- Create brand new survey -->
+    <button *ngIf="['PM','Admin','Developer'].includes(user.role)" class="create-btn new-btn"
+      (click)="openCreateSurveyModal()">
+      <i class="fa-solid fa-file-circle-plus"></i> Create Survey
+    </button>
+  </div>
+
+
+  <div class="survey-grid">
+    <div class="survey-card" *ngFor="let survey of surveys">
+
+      <div class="text-block">
+        <h6>
+          Survey v{{ survey.survey.version }} ({{ survey.questions.length }} Questions)
+        </h6>
+      </div>
+
+        <!-- If this survey is NOT submitted -->
+        <button class="action-btn" *ngIf="!submittedSurveyIds.includes(survey.survey._id)" (click)="openSurveyModal(survey)">
+          <i class="fa-solid fa-pen"></i> Fill Survey
+        </button>
+
+        <div *ngIf="submittedSurveyIds.includes(survey.survey._id)" class="text-success mt-2 fw-bold">
+          ✔ Completed
+        </div>
+
+
+    </div>
+  </div>
+
+
+  <div *ngIf="['CEO','CTO','TeamLead','PM'].includes(user.role)">
+
+    <h5 class="section-title mt-4">
+      <i class="fa-solid fa-users"></i> Team Survey Results
+    </h5>
+
+    <table class="team-table" *ngIf="teamSurveyData.length > 0; else noTeamSurvey">
+      <thead>
+        <tr>
+          <th style="width:40px">#</th>
+          <th>User</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th style="width:90px">View</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of teamSurveyData; let i = index" class="click-row">
+          <td class="text-dark">{{ i+1 }}</td>
+          <td class="text-dark user-cell">
+            <div class="user-name">{{ row.userId.first_name }} {{ row.userId.last_name }}</div>
+            <div class="user-email">{{ row.userId.email }}</div>
+          </td>
+          <td>
+            <span class="role-chip-table">{{ row.userId.roleId?.name || '—' }}</span>
+          </td>
+          <td>
+            <span class="status completed" *ngIf="row.answers.length > 0">Completed</span>
+            <span class="status pending" *ngIf="row.answers.length === 0">Pending</span>
+          </td>
+          <td>
+            <button class="view-btn" (click)="openUserSurveyResult(row)">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <ng-template #noTeamSurvey>
+      <p class="text-muted text-center mt-2">No subordinate survey data found.</p>
+    </ng-template>
+
+  </div>
+
+
+  <!-- Team Results For Leaders -->
+  <div class="text-end mb-3" *ngIf="['CEO', 'CTO', 'TeamLead', 'PM'].includes(user.role)">
+    <button class="team-btn" (click)="viewTeamResponses()">
+      <i class="fa-solid fa-users"></i> View Team Results
+    </button>
+  </div>
+
+</div>
+
+
+<app-modal [questions]="selectedSurveyQuestions" (submitted)="handleSurveySubmit($event)">
+</app-modal>
+
+<app-survey-modal (surveyCreated)="handleCreateSurvey($event)"></app-survey-modal>
+
+<app-team-results *ngIf="showTeamResults" [results]="selectedSurveyQuestions" (close)="closeTeamResults()">
+</app-team-results>
