@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { SurveyService } from '../../services/survey-service';
 import { showSuccess, showError } from '../../shared/utils/alert';
 import { Modal } from '../../components/modal/modal';
@@ -28,7 +29,7 @@ export class Dashboard {
   submittedSurveyId: string | null = null;
   submittedSurveyIds: string[] = []; // list of survey IDs the user has submitted
 
-  constructor(private surveyService: SurveyService) {}
+  constructor(private surveyService: SurveyService, private router: Router) {}
 
   ngOnInit() {
     this.loadSurveys();
@@ -38,6 +39,15 @@ export class Dashboard {
     if (['CEO', 'CTO', 'TeamLead'].includes(this.user.role)) {
       this.loadTeamSurveyTable();
     }
+  }
+
+  // ------------ Logout ------------
+  logout() {
+    // clear auth and redirect to login
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('active_survey_id');
+    this.router.navigate(['/auth/login']);
   }
 
   // ------------ Load all surveys submitted by logged-in user ------------

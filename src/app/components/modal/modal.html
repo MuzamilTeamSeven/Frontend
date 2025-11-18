@@ -3,18 +3,47 @@
     <div class="modal-content">
 
       <div class="modal-header">
-        <h5 class="modal-title">Survey Form</h5>
-        <button type="button" class="btn-close" (click)="close()"></button>
+            <h5 class="modal-title">Survey Form</h5>
+            <button type="button" class="btn-close" (click)="close()"></button>
       </div>
 
-      <form *ngIf="surveyForm" [formGroup]="surveyForm" (ngSubmit)="onSubmit()">
-        <div *ngFor="let q of questions" class="mb-3">
-          <label class="fw-semibold">{{ q.question }}</label>
-          <textarea class="form-control" rows="2" [formControlName]="q._id"></textarea>
-        </div>
+          <form *ngIf="surveyForm" [formGroup]="surveyForm" (ngSubmit)="onSubmit()">
+            <div class="modal-body">
+              <div *ngFor="let q of questions" class="survey-q-card">
+                <div class="q-header">
+                  <div class="q-title">{{ q.question }}</div>
+                  <div class="q-type">{{ q.type }}</div>
+                </div>
 
-        <button type="submit" class="btn btn-primary">Submit</button>
-      </form>
+                <div class="q-input">
+                  <!-- Text input -->
+                  <textarea *ngIf="q.type === 'text'" class="form-control" rows="2" [formControlName]="q._id"></textarea>
+
+                  <!-- Radio options (single choice) -->
+                  <div *ngIf="q.type === 'radio' || q.type === 'select'" class="options-list">
+                    <div *ngFor="let opt of q.options">
+                      <input type="radio" [value]="opt" [formControlName]="q._id" id="{{q._id}}-{{opt}}" />
+                      <label for="{{q._1d}}-{{opt}}">{{ opt }}</label>
+                    </div>
+                  </div>
+
+                  <!-- Checkbox options (multi) -->
+                  <div *ngIf="q.type === 'checkbox'" class="options-list">
+                    <div *ngFor="let opt of q.options">
+                      <input type="checkbox" [checked]="(surveyForm.get(q._id)?.value || []).includes(opt)" (change)="toggleCheckbox(q._id, opt)" id="{{q._id}}-cb-{{opt}}" />
+                      <label for="{{q._id}}-cb-{{opt}}">{{ opt }}</label>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" class="btn btn-light" (click)="close()">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit Survey</button>
+            </div>
+          </form>
 
 
     </div>

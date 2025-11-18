@@ -5,3 +5,23 @@
 textarea {
   resize: none;
 }
+
+/* Survey question card styles */
+.survey-q-card {
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  box-shadow: 0 6px 14px rgba(15,23,42,0.04);
+}
+.q-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.q-title { font-weight:700; color:#0b2545; }
+.q-type { font-size:12px; color:#6b7280; text-transform:capitalize; background:#f3f4f6; padding:4px 8px; border-radius:6px; }
+.q-input .options-list { display:flex; flex-direction:column; gap:6px; }
+.q-input label { margin-left:8px; color:#0b2545; }
+.modal-body { padding: 1rem 1.25rem; max-height: 60vh; overflow:auto; }
+.modal-footer { padding: 0.75rem 1.25rem; border-top: 1px solid #eee; display:flex; gap:8px; justify-content:flex-end; }
+
+@media (max-width:576px) {
+  .survey-q-card { padding:10px; }
+}

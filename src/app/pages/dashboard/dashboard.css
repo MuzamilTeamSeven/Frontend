@@ -43,6 +43,10 @@
   box-shadow: none;
 }
 
+.dashboard-header .user-info { display:flex; align-items:center; justify-content:space-between; }
+.btn-logout { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 8px 12px; border-radius: 8px; font-weight:600; }
+.btn-logout:hover { background: rgba(255,255,255,0.06); }
+
 /* Section */
 .section-title {
   margin-bottom: 14px;

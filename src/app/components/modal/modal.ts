@@ -24,11 +24,31 @@ export class Modal implements OnChanges {
     if (changes['questions'] && this.questions?.length > 0) {
       const controls: any = {};
       this.questions.forEach((q) => {
-        controls[q._id] = ['', Validators.required];
+        // create appropriate control initial value based on question type
+        if (q.type === 'checkbox') {
+          // store checkboxes as arrays
+          controls[q._id] = [[], Validators.required];
+        } else {
+          // text, radio, select -> single value
+          controls[q._id] = ['', Validators.required];
+        }
       });
       this.surveyForm = this.fb.group(controls);
       // console.log("Controls:", Object.keys(this.surveyForm.controls));
     }
+  }
+
+  toggleCheckbox(controlName: string, option: any) {
+    const ctrl = this.surveyForm.get(controlName);
+    if (!ctrl) return;
+    const current = ctrl.value || [];
+    const idx = current.indexOf(option);
+    if (idx === -1) {
+      current.push(option);
+    } else {
+      current.splice(idx, 1);
+    }
+    ctrl.setValue(current);
   }
 
   open() {

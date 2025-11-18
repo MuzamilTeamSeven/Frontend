@@ -3,8 +3,13 @@
   <!-- Top Navigation / Welcome -->
   <div class="dashboard-header shadow">
     <div class="user-info">
-      <h2>Welcome Back, <span>{{ user.first_name }} {{ user.last_name }}</span> 👋</h2>
-      <span class="role-chip">{{ user.role }}</span>
+      <div>
+        <h2>Welcome Back, <span>{{ user.first_name }} {{ user.last_name }}</span> 👋</h2>
+        <span class="role-chip">{{ user.role }}</span>
+      </div>
+      <div class="header-actions">
+        <button class="btn-logout" (click)="logout()">Logout</button>
+      </div>
     </div>
   </div>
 
