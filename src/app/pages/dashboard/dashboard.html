@@ -79,8 +79,10 @@
                     <span class="status pending" *ngIf="!row.cells[s.surveyId].submitted">—</span>
                       <div class="small text-muted">{{ row.cells[s.surveyId].createdAt | date:'short' }}</div>
                       <div class="action-inline">
-                        <button *ngIf="row.cells[s.surveyId].responseId && canDeleteTarget(row.userId?.roleId?.level)"
-                          class="delete-btn" (click)="confirmAndDelete(row.cells[s.surveyId].responseId, row.userId?.roleId?.level, row.name)">
+                        <button *ngIf="row.cells[s.surveyId].responseId && canShowDeleteButton(row)"
+                          class="delete-btn"
+                          title="Delete response"
+                          (click)="confirmAndDelete(row.cells[s.surveyId].responseId, row.userId?.roleId?.level, row.name, row.userId?._id)">
                           <i class="fa-solid fa-trash"></i>
                         </button>
                       </div>
@@ -96,24 +98,7 @@
                   <span class="text-muted">—</span>
                 </ng-template>
               </td>
-              <!-- Actions column -->
-              <td class="actions-cell">
-                <div class="actions-wrap">
-                  <button class="action-btn" (click)="toggleRowActions(ri)">Actions ▾</button>
-                  <div *ngIf="openActionsRow === ri" class="actions-dropdown">
-                    <div *ngIf="rowEntriesForActions(row).length === 0" class="empty">No responses</div>
-                    <div *ngFor="let e of rowEntriesForActions(row)" class="actions-entry">
-                      <div class="entry-meta">
-                        <div class="entry-title">Survey v{{ e.version || '—' }} <span class="dot">•</span> <small class="muted">{{ e.createdAt | date:'short' }}</small></div>
-                        <div class="entry-actions">
-                          <button *ngIf="canDeleteTarget(row.userId?.roleId?.level) && e.responseId" class="delete-small" (click)="confirmAndDelete(e.responseId, row.userId?.roleId?.level, row.name)">Delete</button>
-                        </div>
-                      </div>
-                      <div class="entry-summary">{{ e.summary }}</div>
-                    </div>
-                  </div>
-                </div>
-              </td>
+              
             </tr>
           </tbody>
         </table>

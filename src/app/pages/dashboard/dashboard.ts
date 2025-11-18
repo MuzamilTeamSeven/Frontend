@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { SurveyService } from '../../services/survey-service';
-import { showSuccess, showError } from '../../shared/utils/alert';
+import { showSuccess, showError, showDeleteConfirm } from '../../shared/utils/alert';
 import { Modal } from '../../components/modal/modal';
 import { SurveyModal } from '../../components/survey-modal/survey-modal';
 import { TeamResults } from '../../components/team-results/team-results';
@@ -29,7 +29,7 @@ export class Dashboard {
   teamGroups: any[] = []; // grouped by user for display
   uniqueSurveys: Array<{ surveyId: string; version: number | null }> = [];
   teamMatrixRows: any[] = []; // rows for matrix table
-  openActionsRow: number | null = null; // index of the row whose actions dropdown is open
+  
   hasSubmittedSurvey = false;
   submittedSurveyId: string | null = null;
   submittedSurveyIds: string[] = []; // list of survey IDs the user has submitted
@@ -41,7 +41,8 @@ export class Dashboard {
     this.checkSurveyStatus();
     this.loadMyResponses();
 
-    if (['CEO', 'CTO', 'TeamLead'].includes(this.user.role)) {
+    // Allow PM to load team responses as well (UI already shows PM in template)
+    if (['CEO', 'CTO', 'TeamLead', 'PM'].includes(this.user.role)) {
       this.loadTeamSurveyTable();
     }
   }
@@ -331,65 +332,128 @@ export class Dashboard {
   }
 
   // ------------ Permission helper: can current user delete a given target role level?
-  canDeleteTarget(targetRoleLevel: number | null | undefined, targetRoleName?: string): boolean {
-    const blocked = ['developer', 'intern', 'internee'];
+  // Helper: compute a comparable priority value where larger = more senior
+  // Uses role name mapping first; if numeric level is present in DB and name missing,
+  // converts it so that lower DB level (e.g. 2) becomes higher priority than higher DB level (e.g. 6).
+  private getEffectivePriority(roleName?: string, roleLevel?: number): number {
+    const rolePriority: Record<string, number> = {
+      ceo: 6,
+      cto: 5,
+      pm: 4,
+      teamlead: 3,
+      developer: 2,
+      intern: 1,
+      internee: 1,
+    };
+
+    if (roleName) {
+      const p = rolePriority[String(roleName).toLowerCase()];
+      if (typeof p === 'number') return p;
+    }
+
+    // If numeric DB level is present, convert it into the same 1..6 scale used above.
+    // Your DB stores smaller numbers for more senior roles (e.g. CTO=2, Intern=6).
+    // We invert that using the known max level (6) so that smaller DB level -> larger effective priority.
+    if (typeof roleLevel === 'number' && !isNaN(roleLevel) && roleLevel > 0) {
+      const maxLevel = 6; // matches your DB role levels (Intern=6)
+      // clamp and invert into 1..maxLevel
+      const clamped = Math.max(1, Math.min(roleLevel, maxLevel));
+      return maxLevel - clamped + 1;
+    }
+
+    return 0;
+  }
+
+  // ------------ Permission helper: can current user delete a given target role level?
+  canDeleteTarget(targetRoleLevel: number | null | undefined, targetRoleName?: string, targetUserId?: string): boolean {
+    // Prevent deleting your own responses
+    if (targetUserId && String(targetUserId) === String(this.user?._id || this.user?.id || '')) return false;
+
     const myRoleName = String(this.user?.role || '').toLowerCase();
+    const myLevelFromData = Number(this.user?.roleLevel ?? 0);
+    const myPriority = this.getEffectivePriority(myRoleName, myLevelFromData);
 
-    if (blocked.includes(myRoleName)) return false;
+    const targetPriority = this.getEffectivePriority(targetRoleName, Number(targetRoleLevel ?? 0));
 
-    // determine myLevel from the team data if possible
-    const myId = String(this.user?._id || this.user?.id || '');
-    const myEntry = (this.teamSurveyData || []).find((r: any) => String(r.userId?._id) === myId);
-    const myLevel = Number(myEntry?.userId?.roleId?.level ?? this.user?.roleLevel ?? 0);
-
-    const tgtLevel = Number(targetRoleLevel ?? 0);
-
-    return myLevel > tgtLevel;
+    return myPriority > targetPriority;
   }
 
   // ------------ Delete a response (with confirmation) ------------
-  confirmAndDelete(responseId: string, targetRoleLevel?: number, targetName?: string) {
+  confirmAndDelete(responseId: string, targetRoleLevel?: number, targetName?: string, targetUserId?: string) {
     if (!responseId) return;
-
-    if (!this.canDeleteTarget(targetRoleLevel, targetName)) {
-      showError('You do not have permission to delete this response');
+    // detailed denial messages
+    const myId = String(this.user?._id || this.user?.id || '');
+    if (targetUserId && String(targetUserId) === myId) {
+      showError('You cannot delete your own responses');
       return;
     }
 
-    const ok = confirm('Are you sure you want to delete this response? This action can be undone by admins.');
-    if (!ok) return;
+    if (!this.canDeleteTarget(targetRoleLevel, targetName, targetUserId)) {
+      showError('You can only delete responses of subordinate users');
+      return;
+    }
 
-    this.surveyService.deleteResponse(responseId).subscribe({
-      next: () => {
-        showSuccess('Response deleted');
-        // refresh team data
-        this.loadTeamSurveyTable();
-      },
-      error: (err) => showError(err.error?.message || 'Error deleting response'),
+    // Use SweetAlert confirm flow and on confirm just print the surveyId (for now)
+    // Confirm with SweetAlert and perform actual delete via backend
+    showDeleteConfirm('this response').then((confirmed) => {
+      if (!confirmed) return;
+
+      this.surveyService.deleteResponse(responseId).subscribe({
+        next: () => {
+          showSuccess('Response deleted');
+          this.loadTeamSurveyTable();
+        },
+        error: (err) => showError(err.error?.message || 'Error deleting response'),
+      });
     });
   }
 
-  // Toggle per-row actions dropdown
-  toggleRowActions(index: number) {
-    if (this.openActionsRow === index) this.openActionsRow = null;
-    else this.openActionsRow = index;
+  // Simple UI helper: whether to show delete button for a given row/cell.
+  // We keep backend as the source of truth; this only hides the button for disallowed roles and self-deletes.
+  canShowDeleteButton(row: any): boolean {
+    const targetId = row?.userId?._id || row?.userId;
+    const myId = String(this.user?._id || this.user?.id || '');
+    if (String(targetId) === myId) return false; // no self-delete
+
+    // hide if target has no responses
+    const hasResponses = Object.keys(row?.cells || {}).length > 0;
+    if (!hasResponses) return false;
+
+    const myRoleName = String(this.user?.role || '').toLowerCase();
+    const myLevelFromData = Number(this.user?.roleLevel ?? 0);
+    const myPriority = this.getEffectivePriority(myRoleName, myLevelFromData);
+
+    const targetRoleName = String(row?.userId?.roleId?.name || row?.role || '').toLowerCase();
+    const targetLevel = Number(row?.userId?.roleId?.level ?? 0);
+    const targetPriority = this.getEffectivePriority(targetRoleName, targetLevel);
+
+    return myPriority > targetPriority;
   }
 
-  // Get entries (cells) as an array for a row to show in actions dropdown
-  rowEntriesForActions(row: any) {
-    if (!row || !row.cells) return [];
-    return Object.keys(row.cells).map((k) => {
-      const c = row.cells[k];
-      return {
-        responseId: c.responseId,
-        surveyId: k,
-        version: c.version,
-        submitted: c.submitted,
-        createdAt: c.createdAt,
-        summary: c.summary,
-      };
-    }).sort((a: any, b: any) => (b.version || 0) - (a.version || 0));
+  // Return null when allowed, else a human-readable reason why delete not allowed
+  canDeleteReason(row: any): string | null {
+    const targetId = row?.userId?._id || row?.userId;
+    const myId = String(this.user?._id || this.user?.id || '');
+    if (String(targetId) === myId) return 'You cannot delete your own responses';
+
+    const hasResponses = Object.keys(row?.cells || {}).length > 0;
+    if (!hasResponses) return 'No responses available';
+
+    const myRoleName = String(this.user?.role || '').toLowerCase();
+    const myLevelFromData = Number(this.user?.roleLevel ?? 0);
+    const myPriority = this.getEffectivePriority(myRoleName, myLevelFromData);
+
+    const targetRoleName = String(row?.userId?.roleId?.name || row?.role || '').toLowerCase();
+    const targetLevel = Number(row?.userId?.roleId?.level ?? 0);
+    const targetPriority = this.getEffectivePriority(targetRoleName, targetLevel);
+
+    if (myPriority <= targetPriority) return 'You can only delete responses of subordinate users';
+
+    return null;
   }
+
+  
+  
 
   // Sort teamSurveyData by role level (desc) then by submission status (submitted first)
   sortTeamSurveyData() {
