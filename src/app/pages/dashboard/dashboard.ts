@@ -381,8 +381,8 @@ export class Dashboard {
 
   // ------------ Permission helper: can current user delete a given target role level?
   canDeleteTarget(targetRoleLevel: number | null | undefined, targetRoleName?: string, targetUserId?: string): boolean {
-    // Prevent deleting your own responses
-    if (targetUserId && String(targetUserId) === String(this.user?._id || this.user?.id || '')) return false;
+    // Allow self-delete
+    if (targetUserId && String(targetUserId) === String(this.user?._id || this.user?.id || '')) return true;
 
     const myRoleName = String(this.user?.role || '').toLowerCase();
     const myLevelFromData = Number(this.user?.roleLevel ?? 0);
@@ -398,13 +398,8 @@ export class Dashboard {
     if (!responseId) return;
     // detailed denial messages
     const myId = String(this.user?._id || this.user?.id || '');
-    if (targetUserId && String(targetUserId) === myId) {
-      showError('You cannot delete your own responses');
-      return;
-    }
-
     if (!this.canDeleteTarget(targetRoleLevel, targetName, targetUserId)) {
-      showError('You can only delete responses of subordinate users');
+      showError('You can only delete your own or subordinate users\' responses');
       return;
     }
 
@@ -428,9 +423,7 @@ export class Dashboard {
   canShowDeleteButton(row: any): boolean {
     const targetId = row?.userId?._id || row?.userId;
     const myId = String(this.user?._id || this.user?.id || '');
-    if (String(targetId) === myId) return false; // no self-delete
-
-    // hide if target has no responses
+    // Show delete button for self and juniors
     const hasResponses = Object.keys(row?.cells || {}).length > 0;
     if (!hasResponses) return false;
 
