@@ -54,11 +54,16 @@ export class Dashboard {
 
   // ------------ Logout ------------
   logout() {
-    // clear auth and redirect to login
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('active_survey_id');
-    this.router.navigate(['/auth/login']);
+    // Show confirmation before logout
+    import('./../../shared/utils/alert').then(({ showConfirm }) => {
+      showConfirm('Logout?', 'Are you sure you want to logout?', 'Yes, logout', 'Cancel', 'warning').then((confirmed) => {
+        if (!confirmed) return;
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('active_survey_id');
+        this.router.navigate(['/auth/login']);
+      });
+    });
   }
 
   // ------------ Load all surveys submitted by logged-in user ------------
