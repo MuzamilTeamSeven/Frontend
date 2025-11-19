@@ -19,6 +19,7 @@ import { CommonModule } from '@angular/common';
 export class Signup {
   signupForm!: FormGroup;
   isLoading = false;
+  errorMessage: string = '';
 
   roles: string[] = ['CEO', 'CTO', 'PM', 'TeamLead', 'Developer', 'Intern'];
 
@@ -34,10 +35,7 @@ export class Signup {
   }
 
   onSubmit() {
-    console.log('Form Submitted Clicked'); // 👈 check if button works
-    console.log('Form Valid:', this.signupForm.valid);
-    console.log('Form Values:', this.signupForm.value);
-
+    this.errorMessage = '';
     if (this.signupForm.invalid) return;
 
     this.isLoading = true;
@@ -49,7 +47,8 @@ export class Signup {
         this.signupForm.reset();
       },
       error: (err) => {
-        showError(err.error?.message || 'Signup failed!');
+        this.errorMessage = err.error?.message || 'Signup failed!';
+        showError(this.errorMessage);
         this.isLoading = false;
       },
     });

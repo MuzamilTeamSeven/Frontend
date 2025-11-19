@@ -1,11 +1,3 @@
 .auth-wrapper {
-  min-height: 100vh;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  /* background same as login for full screen */
-  background: linear-gradient(135deg, #0052d4, #4364f7, #6fb1fc);
-  padding: 20px;
+  background: linear-gradient(135deg, #e3f2ff, #f5f9ff);
 }

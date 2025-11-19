@@ -20,6 +20,7 @@ import { Router, RouterLink, RouterModule } from '@angular/router';
 export class Login {
   loginForm!: FormGroup;
   isLoading = false;
+  errorMessage: string = '';
 
   constructor(private fb: FormBuilder, private auth: AuthService, private router: Router) {
     this.loginForm = this.fb.group({
@@ -29,6 +30,7 @@ export class Login {
   }
 
   onSubmit() {
+    this.errorMessage = '';
     if (this.loginForm.invalid) return;
 
     this.isLoading = true;
@@ -44,7 +46,8 @@ export class Login {
         this.router.navigate(['/app/dashboard']);
       },
       error: (err) => {
-        showError(err.error?.message || 'Login failed!');
+        this.errorMessage = err.error?.message || 'Login failed!';
+        showError(this.errorMessage);
         this.isLoading = false;
       },
     });

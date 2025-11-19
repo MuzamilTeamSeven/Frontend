@@ -17,6 +17,10 @@
           </span>
           <input class="form-control" type="email" placeholder="Enter email" formControlName="email">
         </div>
+        <div *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.invalid" class="text-danger small mt-1">
+          <span *ngIf="loginForm.get('email')?.errors?.['required']">Email is required.</span>
+          <span *ngIf="loginForm.get('email')?.errors?.['email']">Invalid email address.</span>
+        </div>
       </div>
 
       <div class="mb-3">
@@ -27,6 +31,14 @@
           </span>
           <input class="form-control" type="password" placeholder="Enter password" formControlName="password">
         </div>
+        <div *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid" class="text-danger small mt-1">
+          Password is required.
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="errorMessage" class="alert alert-danger py-2 mb-2">
+        {{ errorMessage }}
       </div>
 
       <button class="btn btn-primary w-100 rounded-3 mt-2" [disabled]="isLoading">
@@ -42,7 +54,7 @@
 
       <p class="text-center mt-3 small mb-0">
         Don’t have an account?
-        <a routerLink="/auth/signup" class="fw-semibold text-success">Create account</a>
+        <a routerLink="/auth/signup" class="fw-semibold">Create account</a>
       </p>
     </form>
   </div>

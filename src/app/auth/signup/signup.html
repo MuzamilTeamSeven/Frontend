@@ -18,6 +18,9 @@
             <span class="input-group-text"><i class="fa-solid fa-user"></i></span>
             <input class="form-control" placeholder="Enter first name" formControlName="first_name">
           </div>
+          <div *ngIf="signupForm.get('first_name')?.touched && signupForm.get('first_name')?.invalid" class="text-danger small mt-1">
+            First name is required.
+          </div>
         </div>
 
         <div class="col-md-6 mb-3">
@@ -35,6 +38,10 @@
         <div class="input-group">
           <span class="input-group-text"><i class="fa-solid fa-envelope"></i></span>
           <input class="form-control" type="email" placeholder="Enter email address" formControlName="email">
+        </div>
+        <div *ngIf="signupForm.get('email')?.touched && signupForm.get('email')?.invalid" class="text-danger small mt-1">
+          <span *ngIf="signupForm.get('email')?.errors?.['required']">Email is required.</span>
+          <span *ngIf="signupForm.get('email')?.errors?.['email']">Invalid email address.</span>
         </div>
       </div>
 
@@ -57,6 +64,9 @@
             <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
           </select>
         </div>
+        <div *ngIf="signupForm.get('role')?.touched && signupForm.get('role')?.invalid" class="text-danger small mt-1">
+          Role is required.
+        </div>
       </div>
 
       <!-- Password -->
@@ -66,6 +76,15 @@
           <span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
           <input class="form-control" type="password" placeholder="Enter password" formControlName="password">
         </div>
+        <div *ngIf="signupForm.get('password')?.touched && signupForm.get('password')?.invalid" class="text-danger small mt-1">
+          <span *ngIf="signupForm.get('password')?.errors?.['required']">Password is required.</span>
+          <span *ngIf="signupForm.get('password')?.errors?.['minlength']">Password must be at least 6 characters.</span>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="errorMessage" class="alert alert-danger py-2 mb-2">
+        {{ errorMessage }}
       </div>
 
       <!-- Submit -->
@@ -79,7 +98,7 @@
       <!-- Already have account -->
       <p class="text-center mt-3 small mb-0">
         Already have an account?
-        <a routerLink="/auth/login" class="fw-semibold text-primary">Login</a>
+        <a routerLink="/auth/login" class="fw-semibold">Login</a>
       </p>
 
     </form>

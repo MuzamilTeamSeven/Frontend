@@ -8,56 +8,29 @@
 }
 
 .auth-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  border-radius: clamp(12px, 2vw, 20px);
-  padding: clamp(18px, 2vw, 40px);
-  width: clamp(350px, 40vw, 520px);
-  animation-duration: .9s;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(18px);
+  border-radius: 20px;
+  padding: clamp(26px, 2vw, 42px);
+  width: clamp(340px, 40vw, 500px);
+  animation-duration: .8s;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
 .logo-img {
-  width: clamp(50px, 7vw, 70px);
-  margin-bottom: clamp(5px, 1vw, 12px);
-}
-
-.input-group-text {
-  border-right: none;
-  background-color: #eef3ff;
-}
-
-.form-control {
-  font-size: clamp(13px, 1vw, 15px);
-}
-
-.form-control:focus {
-  border-color: #007bff;
-  box-shadow: none;
-}
-
-.btn-primary {
-  font-size: clamp(14px, 1.2vw, 17px);
-  padding: clamp(7px, 1vw, 12px);
-  background: linear-gradient(45deg, #0062ff, #00c6ff);
-  border: none;
-}
-
-.btn-primary:hover {
-  background: linear-gradient(45deg, #0047bf, #00a3d6);
-}
-
-.auth-title {
-  font-size: clamp(20px, 2vw, 28px);
+  width: clamp(55px, 6vw, 72px);
+  margin-bottom: 14px;
 }
 
 .auth-subtitle {
-  font-size: clamp(12px, 1.2vw, 15px);
+  font-size: 15px;
+  color: var(--text-light);
 }
 
 @media(max-width: 400px) {
   .auth-card {
-    padding: 15px;
+    padding: 18px;
   }
   .form-label {
     font-size: 13px;

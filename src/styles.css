@@ -3,24 +3,78 @@
 :root {
   --font-primary: "Inter", sans-serif;
   --font-heading: "Poppins", sans-serif;
+
+  --primary-blue: #1e40af;
+  --primary-blue-light: #3b82f6;
+  --primary-blue-lighter: #60a5fa;
+
+  --text-dark: #334155;
+  --text-light: #64748b;
+
+  --input-bg: #ffffff;
+  --input-icon-bg: #eef3ff;
 }
 
 body {
   font-family: var(--font-primary);
   letter-spacing: 0.1px;
+  background-color: #f4f7fb;
+  margin: 0;
   -webkit-font-smoothing: antialiased;
-  background-color: #f8f9fc;
 }
 
-h1, h2, h3, h4, h5, h6, .auth-title {
+h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
+  color: var(--primary-blue);
+  font-weight: 600;
 }
 
+label, .form-label {
+  font-weight: 600;
+  color: var(--text-dark);
+  font-size: 15px;
+}
+
+.input-group-text {
+  background-color: var(--input-icon-bg);
+  border-right: none;
+}
+
+.form-control {
+  font-size: 14px;
+  padding: 11px 13px;
+  background-color: var(--input-bg);
+}
+
+.form-control:focus {
+  border-color: var(--primary-blue-light) !important;
+  box-shadow: 0 0 0 0.15rem rgba(59, 130, 246, 0.25);
+}
+
+.btn-primary {
+  font-size: 15px;
+  padding: 11px;
+  background: linear-gradient(90deg, var(--primary-blue-light), var(--primary-blue-lighter));
+  border: none;
+  border-radius: 10px;
+  transition: 0.25s ease;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(90deg, #2563eb, #4f8efc);
+  transform: translateY(-1px);
+}
+
+a {
+  color: var(--primary-blue) !important;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
 
 * {
   scroll-behavior: smooth;
-}
-
-html, body, p, span, a, label, input, button, select, textarea, div, small, strong, li {
-  font-family: "Inter", sans-serif !important;
 }
