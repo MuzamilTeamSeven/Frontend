@@ -1,0 +1,31 @@
+<div class="dashboard-navbar">
+
+    <div class="nav-left">
+        <img src="assets/Logo2.png" alt="Logo" class="nav-logo">
+    </div>
+
+    <div class="nav-center">
+        <h3 class='nav-welcome'>Welcome Back,</h3>
+        <h2>{{ user.first_name }} {{ user.last_name }}</h2>
+    </div>
+
+    <div class="nav-right">
+        <div class="avatar-wrapper" (click)="toggleDropdown()" tabindex="0">
+
+            <div class="user-avatar">
+                <img src="assets/Avatar.jpg" alt="User Avatar" class="avatar-img">
+            </div>
+
+            <div class="user-dropdown" *ngIf="showMenu">
+                <div class="dropdown-role">{{ user.role }}</div>
+
+                <button class="dropdown-logout" (click)="onLogout()">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+
+</div>

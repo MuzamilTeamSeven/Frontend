@@ -1,0 +1,161 @@
+.team-table-heading {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.team-scroll {
+  overflow-x: auto;
+  margin-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.team-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border: 1px solid #dbe1e8;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.team-table thead th {
+  background: #f0f6ff;
+  color: #1e3a8a;
+  font-weight: 600;
+  padding: 0.9rem;
+  border-bottom: 1px solid #cdd6e1;
+  border-right: 1px solid #dbe1e8;
+}
+
+.team-table thead th:last-child {
+  border-right: none;
+}
+
+.team-table td {
+  padding: 0.85rem;
+  border-bottom: 1px solid #e5e7eb;
+  border-right: 1px solid #e5e7eb;
+}
+
+.team-table td:last-child {
+  border-right: none;
+}
+
+.team-table thead {
+  border-top: 2px solid #cdd6e1 !important;
+}
+
+.team-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.team-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #111827;
+}
+
+.user-email {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.role-chip-table {
+  background: #3b82f6;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.status.completed {
+  color: #16a34a;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.status.pending {
+  color: #9ca3af;
+  font-size: 1.2rem;
+  font-weight: 300;
+}
+
+.survey-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.top-row {
+  width: 100%;
+}
+
+.date-text {
+  text-align: center;
+  flex-grow: 1;
+}
+
+.delete-btn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.delete-btn:hover {
+  color: #dc2626;
+  transform: scale(1.1);
+}
+
+.matrix-summary {
+  margin-top: 6px;
+  background: #f9fafb;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.matrix-summary-line {
+  font-size: 0.8rem;
+  color: #374151;
+}
+
+.matrix-summary-line strong {
+  color: #111827;
+}
+
+.qa-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px; /* spacing between cards */
+}
+
+.qa-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.qa-question {
+  font-weight: 700;
+  color: #111827;
+  font-size: 0.85rem;
+  margin-bottom: 2px;
+}
+
+.qa-answer {
+  color: #374151;
+  font-size: 0.85rem;
+}

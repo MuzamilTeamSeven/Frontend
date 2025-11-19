@@ -1,0 +1,87 @@
+<h5 class="team-table-heading py-4">
+    <i class="fa-solid fa-users-gear"></i>
+    Team Survey Responses
+</h5>
+
+<div class="team-scroll">
+    <ng-container *ngIf="visibleTeamMatrixRows.length > 0 && uniqueSurveys.length > 0; else noTeamSurvey">
+
+        <table class="team-table matrix-table">
+            <thead>
+                <tr>
+                    <th style="width:240px">User</th>
+                    <th style="width:120px">Role</th>
+                    <th *ngFor="let s of uniqueSurveys">Survey v{{ s.version || '—' }}</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr *ngFor="let row of visibleTeamMatrixRows">
+
+                    <td class="user-cell">
+                        <div class="user-name">{{ row.name }}</div>
+                        <div class="user-email">{{ row.userId.email }}</div>
+                    </td>
+
+                    <td>
+                        <span class="role-chip-table">{{ row.role || '—' }}</span>
+                    </td>
+
+                    <td *ngFor="let s of uniqueSurveys">
+
+                        <ng-container *ngIf="row.cells[s.surveyId]; else noEntry">
+
+                            <div class="survey-cell">
+
+                                <div class="d-flex align-items-center justify-content-between top-row">
+
+                                    <span class="status completed" *ngIf="row.cells[s.surveyId].submitted">✔</span>
+                                    <span class="status pending" *ngIf="!row.cells[s.surveyId].submitted">—</span>
+
+                                    <div class="date-text text-muted small flex-grow-1 text-center">
+                                        {{ row.cells[s.surveyId].createdAt | date:'short' }}
+                                    </div>
+
+                                    <button *ngIf="row.cells[s.surveyId].responseId" class="delete-btn"
+                                        title="Delete response" (click)="onDeleteResponse(
+                              row.cells[s.surveyId].responseId,
+                              row.userId?.roleId?.level,
+                              row.name,
+                              row.userId?._id
+                            )">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+
+                                </div>
+
+                                <div class="matrix-summary mt-2" title="{{ row.cells[s.surveyId].summary }}">
+
+                                    <div class="qa-list">
+                                        <div class="qa-card" *ngFor="let line of row.cells[s.surveyId].summaryLines">
+                                            <div class="qa-question">{{ line.question }}</div>
+                                            <div class="qa-answer">{{ line.answer }}</div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </ng-container>
+
+                        <ng-template #noEntry>
+                            <span class="text-muted">—</span>
+                        </ng-template>
+
+                    </td>
+
+                </tr>
+            </tbody>
+        </table>
+
+    </ng-container>
+
+    <ng-template #noTeamSurvey>
+        <p class="text-muted text-center mt-2">No subordinate survey data found.</p>
+    </ng-template>
+</div>

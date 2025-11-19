@@ -6,11 +6,15 @@ import { showSuccess, showError, showDeleteConfirm } from '../../shared/utils/al
 import { Modal } from '../../components/modal/modal';
 import { SurveyModal } from '../../components/survey-modal/survey-modal';
 import { TeamResults } from '../../components/team-results/team-results';
+import { TeamResultsTableComponent } from '../../components/team-results-table/team-results-table.component';
+import { DashboardHeaderComponent } from '../../components/dashboard-header/dashboard-header.component';
+import { SurveyHeaderComponent } from '../../components/survey-header/survey-header.component';
+import { SurveyCardComponent } from '../../components/survey-card/survey-card.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, Modal, SurveyModal, TeamResults],
+  imports: [CommonModule, Modal, SurveyModal, TeamResults, TeamResultsTableComponent, DashboardHeaderComponent, SurveyHeaderComponent, SurveyCardComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })

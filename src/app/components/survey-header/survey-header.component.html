@@ -1,0 +1,13 @@
+<div class="survey-header py-4">
+  <h5 class="section-title">
+    <i class="fa-solid fa-list-check"></i> Available Surveys
+  </h5>
+
+  <button 
+    *ngIf="['PM','Admin','Developer'].includes(userRole)" 
+    class="btn btn-primary create-btn"
+    (click)="onCreateSurvey()"
+  >
+    <i class="fa-solid fa-file-circle-plus"></i> Create Survey
+  </button>
+</div>

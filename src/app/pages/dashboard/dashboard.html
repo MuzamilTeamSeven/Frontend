@@ -1,115 +1,23 @@
 <div class="dashboard-container">
 
-  <!-- Top Navigation / Welcome -->
-  <div class="dashboard-header shadow">
-    <div class="user-info">
-      <div>
-        <h2>Welcome Back, <span>{{ user.first_name }} {{ user.last_name }}</span> 👋</h2>
-        <span class="role-chip">{{ user.role }}</span>
-      </div>
-      <div class="header-actions">
-        <button class="btn-logout" (click)="logout()">Logout</button>
-      </div>
-    </div>
+  <app-dashboard-header [user]="user" (logout)="logout()"></app-dashboard-header>
+
+  <app-survey-header [userRole]="user.role" (createSurvey)="openCreateSurveyModal()"></app-survey-header>
+
+  <div class="survey-grid mb-3">
+    <app-survey-card *ngFor="let survey of surveys"
+      [survey]="survey"
+      [isSubmitted]="isSubmitted(survey.survey._id)"
+      (fillSurvey)="openSurveyModal(survey)">
+    </app-survey-card>
   </div>
 
-  <div class="survey-header">
-    <h5 class="section-title">
-      <i class="fa-solid fa-list-check"></i> Available Surveys
-    </h5>
-
-    <!-- Create brand new survey -->
-    <button *ngIf="['PM','Admin','Developer'].includes(user.role)" class="create-btn new-btn"
-      (click)="openCreateSurveyModal()">
-      <i class="fa-solid fa-file-circle-plus"></i> Create Survey
-    </button>
-  </div>
-
-
-  <div class="survey-grid">
-    <div class="survey-card" *ngFor="let survey of surveys">
-
-      <div class="text-block">
-        <h6>
-          Survey v{{ survey.survey.version }} ({{ survey.questions.length }} Questions)
-        </h6>
-      </div>
-
-        <!-- If this survey is NOT submitted -->
-        <button class="action-btn" *ngIf="!isSubmitted(survey.survey._id)" (click)="openSurveyModal(survey)">
-          <i class="fa-solid fa-pen"></i> Fill Survey
-        </button>
-
-        <div *ngIf="isSubmitted(survey.survey._id)" class="text-success mt-2 fw-bold">
-          ✔ Completed
-        </div>
-
-
-    </div>
-  </div>
-
-
-  <div *ngIf="['CEO','CTO','TeamLead','PM','Developer','Intern','Internee'].includes(user.role)">
-
-    <h5 class="section-title mt-4">
-      <i class="fa-solid fa-users"></i> Team Survey Results
-    </h5>
-
-    <div class="team-scroll">
-  <ng-container *ngIf="visibleTeamMatrixRows.length > 0 && uniqueSurveys.length > 0; else noTeamSurvey">
-        <table class="team-table matrix-table">
-          <thead>
-            <tr>
-              <th style="width:240px">User</th>
-              <th style="width:120px">Role</th>
-              <th *ngFor="let s of uniqueSurveys">Survey v{{ s.version || '—' }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let row of visibleTeamMatrixRows; let ri = index" class="click-row">
-              <td class="user-cell">
-                <div class="user-name">{{ row.name }}</div>
-                <div class="user-email">{{ row.userId.email }}</div>
-              </td>
-              <td><span class="role-chip-table">{{ row.role || '—' }}</span></td>
-              <td *ngFor="let s of uniqueSurveys">
-                <ng-container *ngIf="row.cells[s.surveyId]; else noEntry">
-                  <div>
-                    <span class="status completed" *ngIf="row.cells[s.surveyId].submitted">✔</span>
-                    <span class="status pending" *ngIf="!row.cells[s.surveyId].submitted">—</span>
-                      <div class="small text-muted">{{ row.cells[s.surveyId].createdAt | date:'short' }}</div>
-                      <div class="action-inline">
-                        <button *ngIf="row.cells[s.surveyId].responseId && canShowDeleteButton(row)"
-                          class="delete-btn"
-                          title="Delete response"
-                          (click)="confirmAndDelete(row.cells[s.surveyId].responseId, row.userId?.roleId?.level, row.name, row.userId?._id)">
-                          <i class="fa-solid fa-trash"></i>
-                        </button>
-                      </div>
-
-                      <div class="matrix-summary" title="{{ row.cells[s.surveyId].summary }}">
-                      <div *ngFor="let line of row.cells[s.surveyId].summaryLines" class="matrix-summary-line">
-                        <strong *ngIf="line.question">{{ line.question }}</strong><span *ngIf="line.question">: </span>{{ line.answer }}
-                      </div>
-                    </div>
-                  </div>
-                </ng-container>
-                <ng-template #noEntry>
-                  <span class="text-muted">—</span>
-                </ng-template>
-              </td>
-              
-            </tr>
-          </tbody>
-        </table>
-      </ng-container>
-
-      <ng-template #noTeamSurvey>
-        <p class="text-muted text-center mt-2">No subordinate survey data found.</p>
-      </ng-template>
-    </div>
-
-  </div>
+  <!-- Team Results Table -->
+  <app-team-results-table *ngIf="['CEO','CTO','TeamLead','PM','Developer','Intern','Internee'].includes(user.role)"
+    [visibleTeamMatrixRows]="visibleTeamMatrixRows"
+    [uniqueSurveys]="uniqueSurveys"
+    (deleteResponse)="confirmAndDelete($event.responseId, $event.roleId, $event.name, $event.userId)">
+  </app-team-results-table>
 
 </div>
 

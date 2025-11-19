@@ -1,0 +1,15 @@
+<div class="survey-card">
+  <div class="text-block">
+    <h6>
+      Survey v{{ survey.survey.version }} ({{ survey.questions.length }} Questions)
+    </h6>
+  </div>
+
+  <button class="btn btn-primary mt-3" *ngIf="!isSubmitted" (click)="onFillSurvey()">
+    <i class="fa-solid fa-pen"></i> Fill Survey
+  </button>
+
+  <div *ngIf="isSubmitted" class="text-success mt-2 fw-bold">
+    ✔ Completed
+  </div>
+</div>

@@ -1,0 +1,35 @@
+.survey-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 22px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  transition: all 0.2s ease;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 140px;
+}
+
+.survey-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.10);
+}
+
+.text-block h6 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.text-success {
+  margin-top: 8px;
+  color: #16a34a !important;
+  font-weight: 600;
+}
+
+.button-wrapper {
+  margin-top: auto;
+}
